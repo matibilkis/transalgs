@@ -49,6 +49,11 @@ class CityGraph():
                             in self.city_graph.edges(data=True) if attr['net'] == "father"))
         return padre
 
+    def create_two_paths(self):
+        path1 = self.random_closed_path((0,0))
+        path2 = self.random_closed_path((0,0))
+        return [path1,path2]
+
     def random_closed_path(self,terminal_node):
         """ retrieves a random closed path from node to itself"""
         path=[]
@@ -70,23 +75,29 @@ class CityGraph():
                path_complete = True
         return path
 
-    def compute_fitness(self, path=None):
-        """ Example: take path = self.random_closed_path((0,0))"""
-        average_path=0
-        c=0
-        f = self.city_graph.copy()
-        if path == None:
-            path = self.random_closed_path((0,0))
-        f.add_edges_from(path)
-        for node1 in list(f.nodes):
-            nodes2=list(f.nodes)
-            nodes2.remove(node1)
-            for node2 in nodes2:
-                average_path += nx.shortest_path_length(f,node1,node2)
-                #average_path += nx.shortest_path_length(f,node2,node1) #Notice this is useless if ida y vuelta
+#     def compute_fitness(self, path=None):
+#         """ Example: take path = self.random_closed_path((0,0))"""
+#         average_path=0
+#         c=0
+#         f = self.city_graph.copy()
+#         if path == None:
+#             path = self.random_closed_path((0,0))
+#         f.add_edges_from(path)
+#         for node1 in list(f.nodes):
+#             nodes2=list(f.nodes)
+#             nodes2.remove(node1)
+#             for node2 in nodes2:
+#                 average_path += nx.shortest_path_length(f,node1,node2)
+#                 #average_path += nx.shortest_path_length(f,node2,node1) #Notice this is useless if ida y vuelta
 
-                c+=1
-        return average_path/c
+#                 c+=1
+#         return average_path/c
+
+    def compute_fitness(self, linePath):
+        #https://networkx.github.io/documentation/networkx-1.10/reference/generated/networkx.algorithms.shortest_paths.generic.average_shortest_path_length.html
+        father_with_linePath = self.father.copy()
+        father_with_linePath.add_edges_from(linePath)
+        return nx.average_shortest_path_length(father_with_linePath)
 
     def check_paths(self,paths, changePoints):
         if isinstance(changePoints,list) != True:
@@ -94,7 +105,7 @@ class CityGraph():
         cop = paths.copy()
         for ind,i in enumerate(paths):
             if len(i)<(max(changePoints)+1):
-                print("Path {} discarded".format(str(ind)))
+#                 print("Path {} discarded".format(str(ind)))
                 cop.remove(i)
         if len(cop)<(len(changePoints)+1): #notice it's +1 as the path may be length changePoints
             #to be serious we should put changePoint strictly higher than shortest path distance... but from which to which ?
@@ -111,7 +122,6 @@ class CityGraph():
                 changePoints = [changePoints]
             path = tuple(paths[0][:changePoints[0]])
 
-            print("first_part, path1 : ",path)
             extremePath1= paths[0][changePoints[0]][1]
             extremePath2 = paths[1][changePoints[0]+1][0]
 
@@ -126,6 +136,6 @@ class CityGraph():
             path += tuple(paths[1][(changePoints[0]+1):])
             return True, path
         else:
-            print("Paths do not satisfy sex onditions (maybe they are not hot enough)")
+#             print("Paths do not satisfy sex onditions (maybe they are not hot enough)")
             return False, ()
         #I'll make it for only one changePoint, but it should not be difficult to extend this
