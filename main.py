@@ -139,3 +139,10 @@ class CityGraph():
 #             print("Paths do not satisfy sex onditions (maybe they are not hot enough)")
             return False, ()
         #I'll make it for only one changePoint, but it should not be difficult to extend this
+
+
+city = CityGraph(length=100,width=20,ratio=2)
+merged, child = city.crop_and_paste([path1,path2],4)
+while merged == False:
+    new_paths = city.create_two_paths()
+    merged, child = city.crop_and_paste(new_paths,4)
