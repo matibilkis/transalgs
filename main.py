@@ -2,6 +2,7 @@ import networkx as nx
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import multiprocessing as mp
 
 class CityGraph():
     def __init__(self, ratio=3,length=100, width=100):
@@ -44,15 +45,10 @@ class CityGraph():
         return madre
 
     def give_father(self):
-        """ retrieves a DiGraph with all possible paths in the transport system """
+        """ retrieves a DiGraph with only the walking-connected points (and its edges) """
         padre = nx.DiGraph(((source, target, attr) for source, target, attr
                             in self.city_graph.edges(data=True) if attr['net'] == "father"))
         return padre
-
-    def create_two_paths(self):
-        path1 = self.random_closed_path((0,0))
-        path2 = self.random_closed_path((0,0))
-        return [path1,path2]
 
     def random_closed_path(self,terminal_node):
         """ retrieves a random closed path from node to itself"""
@@ -75,6 +71,12 @@ class CityGraph():
                path_complete = True
         return path
 
+    def create_two_paths(self):
+        """" returns two random paths to be cross-overedt """
+        path1 = self.random_closed_path((0,0))
+        path2 = self.random_closed_path((0,0))
+        return [tuple(path1),tuple(path2)]
+
 #     def compute_fitness(self, path=None):
 #         """ Example: take path = self.random_closed_path((0,0))"""
 #         average_path=0
@@ -93,11 +95,35 @@ class CityGraph():
 #                 c+=1
 #         return average_path/c
 
-    def compute_fitness(self, linePath):
+    def compute_fitness(self, linePath,i=None, dict=None):
         #https://networkx.github.io/documentation/networkx-1.10/reference/generated/networkx.algorithms.shortest_paths.generic.average_shortest_path_length.html
         father_with_linePath = self.father.copy()
         father_with_linePath.add_edges_from(linePath)
-        return nx.average_shortest_path_length(father_with_linePath)
+        if i==None:
+            return nx.average_shortest_path_length(father_with_linePath)
+        else:
+            dict[str(i)] = nx.average_shortest_path_length(father_with_linePath)
+            return
+
+    def compute_fitness_family(self, paths):
+        if isinstance(paths,dict) != True:
+            raise TypeError("paths should be a dict")
+        jobs=[]
+        manager = mp.Manager()
+        return_dict = manager.dict()
+        multi=[mp.Process(target=self.compute_fitness, args=([paths[str(k)]],k,return_dict)) for k in paths.keys()]
+        for i in multi:
+            jobs.append(i)
+            i.start()
+        for proc in jobs:
+            proc.join()
+        return return_dict
+     #   for calc in multi:
+     #       calc.start()
+     #   for calc,index_path in zip(multi,paths.keys()):
+     #       calc.join()
+     #       results[index_path] = calc
+     #   return results
 
     def check_paths(self,paths, changePoints):
         if isinstance(changePoints,list) != True:
@@ -141,8 +167,18 @@ class CityGraph():
         #I'll make it for only one changePoint, but it should not be difficult to extend this
 
 
-city = CityGraph(length=100,width=20,ratio=2)
-merged, child = city.crop_and_paste([path1,path2],4)
-while merged == False:
-    new_paths = city.create_two_paths()
-    merged, child = city.crop_and_paste(new_paths,4)
+    def create_family(self, paths=None):
+        if paths == None:
+            paths = city.create_two_paths()
+        merged, child = city.crop_and_paste([paths],changePoints=5)
+        while merged == False:
+            paths = city.create_two_paths()
+            merged, child = city.crop_and_paste(paths,4)
+        family = {"0": paths[0], "1": paths[1], "2": child}
+        return family
+
+
+city = CityGraph(length=10,width=10,ratio=2)
+family = city.create_family()
+family
+f =city.compute_fitness_family(family)

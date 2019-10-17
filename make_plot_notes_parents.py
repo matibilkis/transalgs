@@ -56,7 +56,7 @@ options_madre = {
 }
 
 nx.draw_spectral(padre,**options_padre, label="padre")
-nx.draw_spectral(madre,**options_madre,label="madre")
+# nx.draw_spectral(madre,**options_madre,label="madre")
 plt.legend()
-plt.savefig("example_madre_padre.png")
+plt.savefig("ejemplito_duda.png")
 plt.show()
