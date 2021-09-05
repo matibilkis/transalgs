@@ -1,9 +1,0 @@
-I want to download the data of La Plata, for the public network
-
-La Plata data is available \href{http://download.geofabrik.de/south-america/argentina.html}{here}, but it's the whole country actually; it seems that OSM data is pre-processed by some team, to better display traffic networks \href{https://memomaps.de/en/homepage/}{see here}. Downloading speed slooooow; currently getting Spain and ARgentina.
-
-Data seem to be missing though, will try google maps \href{https://github.com/googlemaps/google-maps-services-python}{github}
-
-If you check googlemaps (the web...), it tells you the traffic on-line! All that data you could actually get it from the API
-
-I created a project, you can get the data from the GoogleAPI (I have some key, if we use it too much i will have to pay..). Spent some time and was not able to get it; somehow i'd like to get a layer of transit for La Plata, but not even gmaps
